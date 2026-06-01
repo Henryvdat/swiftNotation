@@ -3,7 +3,7 @@
 import SwiftUI
 
 @main
-struct swiftNotationApp: App {
+struct SwiftNotationApp: App {
     var body: some Scene {
         WindowGroup {
             ContentView()
@@ -12,7 +12,8 @@ struct swiftNotationApp: App {
         .windowToolbarStyle(.unified)
         .defaultSize(width: 1024, height: 768)
         .commands {
-            CommandGroup(replacing: .newItem) { }   // remove New menu item (not needed yet)
+            // "New" is not applicable to a single-document score viewer.
+            CommandGroup(replacing: .newItem) { }
         }
     }
 }

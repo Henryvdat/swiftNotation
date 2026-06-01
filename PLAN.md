@@ -19,7 +19,7 @@ MusicXML File
 
 **Golden rule:** Never couple UI directly to XML. Always: `UI ↔ Model ↔ Renderer`
 
-**Key constraints:** Fully offline. No network access. No JS/web runtime in the rendering path.
+**Key constraints:** Fully offline. WKWebView is used for SVG display only (requires `com.apple.security.network.client` for its internal subprocess architecture — no external requests are made).
 
 **Key dependencies:**
 | Library | Purpose | Source |
@@ -90,11 +90,12 @@ MusicXML File
 ### Stage 1 — Bootstrap
 - [ ] mx added to Xcode project *(see SETUP.md — Stage 3 dependency)*
 - [x] Verovio C++ bridge written (`VerovioWrapper.h/.mm`, bridging header, `VerovioRenderer.swift`)
-- [ ] Verovio submodule cloned + `libverovio.a` built via cmake *(user action — see SETUP.md §1)*
-- [ ] Verovio `data/` folder added to app bundle *(user action — see SETUP.md §2)*
-- [ ] musicxml schema cloned *(optional reference — see SETUP.md)*
+- [x] Verovio submodule cloned + `libverovio.a` built via cmake
+- [x] Verovio `data/` folder added to app bundle as folder reference
+- [x] All verovio header search paths configured (include subdirs + libmei)
+- [ ] musicxml schema cloned *(optional reference)*
 - [x] C++ bridging header configured (`swiftNotation-Bridging-Header.h`)
-- [ ] Project builds without errors ⬅ **pending libverovio.a**
+- [x] Project builds without errors
 
 ### Stage 2 — Render
 - [x] File picker implemented (`ContentView.swift`)
@@ -134,13 +135,13 @@ MusicXML File
 
 | Stage | Status | % Complete |
 |---|---|---|
-| 1 — Bootstrap | 🟡 In progress | 60% |
+| 1 — Bootstrap | 🟢 Complete | 95% |
 | 2 — Render | 🟢 Complete | 100% |
 | 3 — Model | 🔴 Not started | 0% |
 | 4 — Selection | 🔴 Not started | 0% |
 | 5 — Editing | 🔴 Not started | 0% |
 | 6 — Framework | 🔴 Not started | 0% |
-| **Overall** | | **18%** |
+| **Overall** | | **25%** |
 
 *Legend: 🔴 Not started · 🟡 In progress · 🟢 Complete*
 
@@ -148,11 +149,11 @@ MusicXML File
 
 ## e) Next Actions
 
-1. **Build & run** — open `swiftNotation.xcodeproj`, build (⌘B), and run. Test with `Sample.musicxml` using the Open Score button. Requires internet for first Verovio load.
-2. **Bundle Verovio offline** — download `verovio-toolkit-wasm.js` per `SETUP.md` and add to Xcode target for offline use.
-3. **Add mx as submodule** — follow `SETUP.md §2` to add `https://github.com/webern/mx.git` under `Packages/mx`, then link as a static library in Xcode.
-4. **Define Swift model types** — create `Score.swift`, `Part.swift`, `Measure.swift`, `Note.swift` with the internal model structure from Stage 3.
-5. **Write mx ObjC++ bridge** — create `MxBridge.h` / `MxBridge.mm` to expose mx parsing to Swift.
+1. **Add mx as submodule** — add `https://github.com/webern/mx.git` under `Packages/mx`, build as a static library, configure header/library search paths in Xcode (mirrors the verovio setup).
+2. **Write mx ObjC++ bridge** — create `MxBridge.h` / `MxBridge.mm` to parse MusicXML via mx and expose the result to Swift.
+3. **Define Swift model types** — create `Score.swift`, `Part.swift`, `Measure.swift`, `Note.swift` with the internal model structure from Stage 3.
+4. **Wire model into renderer** — instead of passing raw XML to Verovio, route through the model so edits can trigger re-renders.
+5. **SVG ID mapping** — use Verovio's `svgBoundingBoxes: true` output to map element IDs back to model objects for hit-testing (Stage 4 foundation).
 
 ---
 
@@ -163,7 +164,8 @@ MusicXML File
 | 2026-05-31 | Plan created from transcript. Project structure confirmed. No code written yet. |
 | 2026-05-31 | Session 2: Verovio integrated via WKWebView JS toolkit (later replaced). |
 | 2026-05-31 | Session 3: Architecture corrected — fully offline, no JS/CDN. Replaced WKWebView JS approach with native Verovio C++ via ObjC++ bridge (VerovioWrapper.h/.mm). Added bridging header, SWIFT_OBJC_BRIDGING_HEADER, HEADER_SEARCH_PATHS, LIBRARY_SEARCH_PATHS, OTHER_LDFLAGS in pbxproj. Entitlements updated (network.client removed). Views separated: EditorToolbar, ScoreCanvas, ScoreWebView, ContentView, RendererModel each in own file. SETUP.md updated with cmake build steps. Pending: user runs cmake to produce libverovio.a and adds data/ bundle. |
+| 2026-05-31 | Session 4: Full build fix. Resolved 772 duplicate resource errors (deleted local data/ copy), fixed Swift 6 member import visibility (added import Combine), fixed ObjC NSError** bridging, added all verovio header subdirectory search paths, added Packages/verovio/data as folder reference resource, removed unsupported noLayout option, restored WKWebView with com.apple.security.network.client entitlement. App now builds cleanly and renders MusicXML files. Pushed to GitHub. |
 
 ---
 
-*Last updated: 2026-05-31*
+*Last updated: 2026-05-31 (Session 4)*
