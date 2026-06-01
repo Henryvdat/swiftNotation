@@ -27,7 +27,12 @@
 		F5A9F54F2FCD08CD003BB4CD /* swiftNotation.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = swiftNotation.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		F5A9F55C2FCD08CE003BB4CD /* swiftNotationTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = swiftNotationTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		F5A9F5662FCD08CE003BB4CD /* swiftNotationUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = swiftNotationUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		F5A9F5792FCD08CE003BB4CD /* data */ = {isa = PBXFileReference; lastKnownFileType = folder; name = data; path = Packages/verovio/data; sourceTree = SOURCE_ROOT; };
 /* End PBXFileReference section */
+
+/* Begin PBXBuildFile section */
+		F5A9F57A2FCD08CE003BB4CD /* data in Resources */ = {isa = PBXBuildFile; fileRef = F5A9F5792FCD08CE003BB4CD /* data */; };
+/* End PBXBuildFile section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		F5A9F5512FCD08CD003BB4CD /* swiftNotation */ = {
@@ -212,6 +217,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				F5A9F57A2FCD08CE003BB4CD /* data in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -394,6 +400,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = swiftNotation/swiftNotation.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
@@ -403,12 +410,33 @@
 				ENABLE_PREVIEWS = YES;
 				ENABLE_USER_SELECTED_FILES = readonly;
 				GENERATE_INFOPLIST_FILE = YES;
+				HEADER_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(SRCROOT)/Packages/verovio/include",
+					"$(SRCROOT)/Packages/verovio/include/crc",
+					"$(SRCROOT)/Packages/verovio/include/hum",
+					"$(SRCROOT)/Packages/verovio/include/json",
+					"$(SRCROOT)/Packages/verovio/include/midi",
+					"$(SRCROOT)/Packages/verovio/include/pugi",
+					"$(SRCROOT)/Packages/verovio/include/tuning-library",
+					"$(SRCROOT)/Packages/verovio/libmei/addons",
+					"$(SRCROOT)/Packages/verovio/libmei/dist",
+				);
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(SRCROOT)/Packages/verovio/build",
+				);
 				MARKETING_VERSION = 1.0;
+				OTHER_LDFLAGS = (
+					"$(inherited)",
+					"-lverovio",
+					"-lc++",
+				);
 				PRODUCT_BUNDLE_IDENTIFIER = neilwhittaker.swiftNotation;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				REGISTER_APP_GROUPS = YES;
@@ -416,6 +444,7 @@
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
 				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
 				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_OBJC_BRIDGING_HEADER = "swiftNotation/swiftNotation-Bridging-Header.h";
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
 				SWIFT_VERSION = 5.0;
 			};
@@ -426,6 +455,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = swiftNotation/swiftNotation.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
@@ -435,12 +465,33 @@
 				ENABLE_PREVIEWS = YES;
 				ENABLE_USER_SELECTED_FILES = readonly;
 				GENERATE_INFOPLIST_FILE = YES;
+				HEADER_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(SRCROOT)/Packages/verovio/include",
+					"$(SRCROOT)/Packages/verovio/include/crc",
+					"$(SRCROOT)/Packages/verovio/include/hum",
+					"$(SRCROOT)/Packages/verovio/include/json",
+					"$(SRCROOT)/Packages/verovio/include/midi",
+					"$(SRCROOT)/Packages/verovio/include/pugi",
+					"$(SRCROOT)/Packages/verovio/include/tuning-library",
+					"$(SRCROOT)/Packages/verovio/libmei/addons",
+					"$(SRCROOT)/Packages/verovio/libmei/dist",
+				);
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(SRCROOT)/Packages/verovio/build",
+				);
 				MARKETING_VERSION = 1.0;
+				OTHER_LDFLAGS = (
+					"$(inherited)",
+					"-lverovio",
+					"-lc++",
+				);
 				PRODUCT_BUNDLE_IDENTIFIER = neilwhittaker.swiftNotation;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				REGISTER_APP_GROUPS = YES;
@@ -448,6 +499,7 @@
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
 				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
 				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_OBJC_BRIDGING_HEADER = "swiftNotation/swiftNotation-Bridging-Header.h";
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
 				SWIFT_VERSION = 5.0;
 			};
