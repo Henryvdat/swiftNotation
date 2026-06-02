@@ -1,35 +1,17 @@
 // ContentView.swift
-// Root view: toolbar + score display.
-// All rendering state is owned by RendererModel.
+// Thin host-app wrapper — creates a VerovioRenderer and hands it to
+// NotationEditorView (from the NotationEditor package).
 
 import SwiftUI
-import UniformTypeIdentifiers
+import NotationEditor
 
 struct ContentView: View {
 
-    @StateObject private var model = RendererModel()
-    @State private var showFileImporter = false
+    @StateObject private var model = NotationEditorModel(renderer: VerovioRenderer())
 
     var body: some View {
-        VStack(spacing: 0) {
-            EditorToolbar(
-                isLoading: model.isLoading,
-                statusMessage: model.statusMessage,
-                onOpen: { showFileImporter = true }
-            )
-            Divider()
-            ScoreCanvas(svg: model.svgOutput, onOpen: { showFileImporter = true })
-        }
-        .frame(minWidth: 800, minHeight: 600)
-        .fileImporter(
-            isPresented: $showFileImporter,
-            allowedContentTypes: [.musicXML, .xml],
-            allowsMultipleSelection: false,
-            onCompletion: model.handleImport
-        )
+        NotationEditorView(model: model)
     }
 }
 
-#Preview {
-    ContentView()
-}
+#Preview { ContentView() }

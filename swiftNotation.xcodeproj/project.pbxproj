@@ -6,6 +6,11 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		AA000003AABB000000000003 /* NotationEditor in Frameworks */ = {isa = PBXBuildFile; productRef = AA000002AABB000000000002 /* NotationEditor */; };
+		F5A9F57A2FCD08CE003BB4CD /* data in Resources */ = {isa = PBXBuildFile; fileRef = F5A9F5792FCD08CE003BB4CD /* data */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXContainerItemProxy section */
 		F5A9F55D2FCD08CE003BB4CD /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -30,10 +35,6 @@
 		F5A9F5792FCD08CE003BB4CD /* data */ = {isa = PBXFileReference; lastKnownFileType = folder; name = data; path = Packages/verovio/data; sourceTree = SOURCE_ROOT; };
 /* End PBXFileReference section */
 
-/* Begin PBXBuildFile section */
-		F5A9F57A2FCD08CE003BB4CD /* data in Resources */ = {isa = PBXBuildFile; fileRef = F5A9F5792FCD08CE003BB4CD /* data */; };
-/* End PBXBuildFile section */
-
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		F5A9F5512FCD08CD003BB4CD /* swiftNotation */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
@@ -57,6 +58,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				AA000003AABB000000000003 /* NotationEditor in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -84,6 +86,7 @@
 				F5A9F55F2FCD08CE003BB4CD /* swiftNotationTests */,
 				F5A9F5692FCD08CE003BB4CD /* swiftNotationUITests */,
 				F5A9F5502FCD08CD003BB4CD /* Products */,
+				F5E5420D2FCDFBCD00FB0FFF /* Recovered References */,
 			);
 			sourceTree = "<group>";
 		};
@@ -95,6 +98,14 @@
 				F5A9F5662FCD08CE003BB4CD /* swiftNotationUITests.xctest */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		F5E5420D2FCDFBCD00FB0FFF /* Recovered References */ = {
+			isa = PBXGroup;
+			children = (
+				F5A9F5792FCD08CE003BB4CD /* data */,
+			);
+			name = "Recovered References";
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -117,6 +128,7 @@
 			);
 			name = swiftNotation;
 			packageProductDependencies = (
+				AA000002AABB000000000002 /* NotationEditor */,
 			);
 			productName = swiftNotation;
 			productReference = F5A9F54F2FCD08CD003BB4CD /* swiftNotation.app */;
@@ -200,6 +212,9 @@
 			);
 			mainGroup = F5A9F5462FCD08CD003BB4CD;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				F51624E52FCEEC8900FB1F8E /* XCLocalSwiftPackageReference "Packages/NotationEditor" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = F5A9F5502FCD08CD003BB4CD /* Products */;
 			projectDirPath = "";
@@ -625,6 +640,21 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCLocalSwiftPackageReference section */
+		F51624E52FCEEC8900FB1F8E /* XCLocalSwiftPackageReference "Packages/NotationEditor" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = Packages/NotationEditor;
+		};
+/* End XCLocalSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		AA000002AABB000000000002 /* NotationEditor */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = F51624E52FCEEC8900FB1F8E /* XCLocalSwiftPackageReference "Packages/NotationEditor" */;
+			productName = NotationEditor;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = F5A9F5472FCD08CD003BB4CD /* Project object */;
 }

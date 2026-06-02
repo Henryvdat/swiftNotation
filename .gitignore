@@ -1,0 +1,18 @@
+# macOS
+.DS_Store
+
+# Xcode
+xcuserdata/
+*.xcworkspace/xcuserdata/
+DerivedData/
+*.ipa
+*.xcarchive
+
+# Swift Package Manager
+.build/
+*.resolved
+
+# Local-only planning docs — do not push
+PLAN.md
+SETUP.md
+musicxml_editor_transcript.md
