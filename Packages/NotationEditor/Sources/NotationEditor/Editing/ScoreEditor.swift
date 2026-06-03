@@ -204,6 +204,34 @@ public enum ScoreEditor {
         return result
     }
 
+    // MARK: - Set barline
+
+    /// Set or remove an explicit barline on the measure containing `svgID`.
+    /// Pass `nil` to revert the measure's right barline to the implicit single barline.
+    /// Providing a `Barline` with `location: .left` sets the left (forward-repeat) barline;
+    /// all other values set the right barline.
+    public static func setBarline(
+        _ barline: Barline?,
+        forMeasureContaining svgID: String,
+        in score: Score
+    ) -> Score? {
+        guard let p = path(forSvgID: svgID, in: score) else { return nil }
+        var result = score
+        let targetLocation: BarlineLocation = barline?.location ?? .right
+
+        // Remove any existing explicit barline at that location.
+        result.parts[p.partIndex].measures[p.measureIndex].elements.removeAll {
+            if case .barline(let b) = $0, b.location == targetLocation { return true }
+            return false
+        }
+
+        if let barline {
+            result.parts[p.partIndex].measures[p.measureIndex].elements.append(.barline(barline))
+        }
+
+        return result
+    }
+
     // MARK: - Set accidental
 
     /// Change only the `alter` component of the note at `svgID`, keeping step and octave.

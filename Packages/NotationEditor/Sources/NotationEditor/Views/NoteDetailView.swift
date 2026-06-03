@@ -11,6 +11,7 @@ public struct NoteDetailView: View {
     public let onSetAccidental:     (Double?) -> Void
     public let onDelete:            () -> Void
     public let onConvertRestToNote: (Pitch) -> Void
+    public let onSetBarline: (Barline?) -> Void
 
     // Local state for the "Add Note" pitch picker (rests only)
     @State private var pitchStep:   PitchStep = .c
@@ -28,7 +29,8 @@ public struct NoteDetailView: View {
         onToggleDot: @escaping () -> Void = {},
         onSetAccidental: @escaping (Double?) -> Void = { _ in },
         onDelete: @escaping () -> Void,
-        onConvertRestToNote: @escaping (Pitch) -> Void = { _ in }
+        onConvertRestToNote: @escaping (Pitch) -> Void = { _ in },
+        onSetBarline: @escaping (Barline?) -> Void = { _ in }
     ) {
         self.selection           = selection
         self.onTranspose         = onTranspose
@@ -37,6 +39,7 @@ public struct NoteDetailView: View {
         self.onSetAccidental     = onSetAccidental
         self.onDelete            = onDelete
         self.onConvertRestToNote = onConvertRestToNote
+        self.onSetBarline        = onSetBarline
     }
 
     public var body: some View {
@@ -209,6 +212,28 @@ public struct NoteDetailView: View {
                 }
                 .buttonStyle(.bordered)
                 .tint(.red)
+            }
+
+            Divider()
+
+            // Barline (always — applies to the measure containing the selected element)
+            Text("BARLINE")
+                .font(.system(size: 10, weight: .semibold))
+                .foregroundStyle(.secondary)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.top, 4)
+
+            HStack(spacing: 2) {
+                fillButton("|",    help: "Regular (single) barline")   { onSetBarline(nil) }
+                fillButton("‖",    help: "Double barline")              { onSetBarline(Barline(location: .right, style: .lightLight)) }
+                fillButton("‖|",   help: "Final barline")               { onSetBarline(Barline(location: .right, style: .lightHeavy)) }
+                fillButton("| |",  help: "Heavy barline")               { onSetBarline(Barline(location: .right, style: .heavy)) }
+            }
+            HStack(spacing: 2) {
+                fillButton("⋯",    help: "Dotted barline")              { onSetBarline(Barline(location: .right, style: .dotted)) }
+                fillButton("╌",    help: "Dashed barline")              { onSetBarline(Barline(location: .right, style: .dashed)) }
+                fillButton(":|",   help: "Backward repeat (end)")       { onSetBarline(Barline(location: .right, style: .lightHeavy, repeatDirection: .backward)) }
+                fillButton("|:",   help: "Forward repeat (start)")      { onSetBarline(Barline(location: .left, style: .heavyLight, repeatDirection: .forward)) }
             }
         }
         .padding(12)

@@ -224,35 +224,30 @@ static NSArray<MxNoteTransfer *> *notesFromMeasure(const MeasureData &measure) {
 static NSArray<MxBarlineTransfer *> *barlinesFromMeasure(const MeasureData &measure) {
     NSMutableArray<MxBarlineTransfer *> *result = [NSMutableArray array];
 
-    auto addBarline = [&](const BarlineData &b, NSString *location) {
-        if (b.barlineType == BarlineType::unspecified || b.barlineType == BarlineType::normal)
-            return;
+    for (const auto &b : measure.barlines) {
+        if (b.barlineType == BarlineType::unspecified ||
+            b.barlineType == BarlineType::unsupported ||
+            b.barlineType == BarlineType::normal)
+            continue;
+
+        NSString *location;
+        switch (b.location) {
+            case HorizontalAlignment::left:   location = @"left";   break;
+            case HorizontalAlignment::center: location = @"middle"; break;
+            default:                          location = @"right";  break;
+        }
+
         MxBarlineTransfer *t = [[MxBarlineTransfer alloc] init];
         t.barlineType = barlineTypeString(b.barlineType);
         t.location    = location;
         t.isRepeat    = b.repeat;
         if (b.repeat) {
-            // mx doesn't expose repeat direction directly on BarlineData;
-            // infer from location: left barlines with repeat are forward, right are backward.
+            // Infer repeat direction from barline location.
             t.repeatDirection = [location isEqualToString:@"left"] ? @"forward" : @"backward";
         }
         [result addObject:t];
-    };
-
-    if (measure.staves.size() > 0) {
-        const auto &staff = measure.staves[0];
-        // mx stores barlines via directions in some versions; barlines are
-        // also found via MeasureData access patterns.  We check the voices:
-        // barlines in mx >= 0.6 are not directly on MeasureData, so we only
-        // add barlines we know about from the measure-level barline fields.
-        (void)staff; // silence unused-variable warning
     }
 
-    // mx exposes barlines through MeasureData only since 0.5
-    // Current mx API doesn't have explicit barlines on MeasureData directly;
-    // they are embedded in the note stream at specific tickTimePositions.
-    // We return an empty array here — Foundation importer handles barlines.
-    (void)addBarline; // suppress unused warning
     return result;
 }
 

@@ -203,6 +203,12 @@ public final class NotationEditorModel: ObservableObject {
         applyEdit(updated, clearingSelection: false)
     }
 
+    public func setBarlineForSelection(_ barline: Barline?) {
+        guard let svgID = selection.svgID, let current = score else { return }
+        guard let updated = ScoreEditor.setBarline(barline, forMeasureContaining: svgID, in: current) else { return }
+        applyEdit(updated, clearingSelection: false)
+    }
+
     public func toggleDotOnSelection() {
         guard let svgID = selection.svgID, let current = score else { return }
         guard let updated = ScoreEditor.toggleDot(svgID: svgID, in: current) else { return }
@@ -303,8 +309,8 @@ public final class NotationEditorModel: ObservableObject {
         }
         guard !ids.isEmpty else { return }
         if let currentID = selection.svgID, let idx = ids.firstIndex(of: currentID) {
-            // Wrap around so → at the last element goes to the first, and vice-versa.
-            let nextIdx = forward ? (idx + 1) % ids.count : (idx - 1 + ids.count) % ids.count
+            let nextIdx = forward ? idx + 1 : idx - 1
+            guard nextIdx >= 0 && nextIdx < ids.count else { return }
             selectElement(svgID: ids[nextIdx])
         } else {
             selectElement(svgID: forward ? ids[0] : ids[ids.count - 1])

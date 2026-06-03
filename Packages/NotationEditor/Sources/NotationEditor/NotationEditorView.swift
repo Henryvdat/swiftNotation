@@ -67,7 +67,8 @@ public struct NotationEditorView: View {
                         onToggleDot:         { model.toggleDotOnSelection() },
                         onSetAccidental:     { model.setSelectionAccidental($0) },
                         onDelete:            { model.deleteSelection() },
-                        onConvertRestToNote: { pitch in model.convertRestToNote(pitch: pitch) }
+                        onConvertRestToNote: { pitch in model.convertRestToNote(pitch: pitch) },
+                        onSetBarline:        { model.setBarlineForSelection($0) }
                     )
                     .transition(.move(edge: .trailing))
                 }

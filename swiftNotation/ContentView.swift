@@ -7,7 +7,7 @@ import NotationEditor
 
 struct ContentView: View {
 
-    @StateObject private var model = NotationEditorModel(renderer: VerovioRenderer())
+    @StateObject private var model = NotationEditorModel(renderer: VerovioRenderer(), importer: MxMusicXMLImporter())
 
     var body: some View {
         NotationEditorView(model: model)

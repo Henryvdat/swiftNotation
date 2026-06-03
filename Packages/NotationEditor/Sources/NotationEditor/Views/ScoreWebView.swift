@@ -188,7 +188,7 @@ private func highlightJS(previousID: String?, newID: String?) -> String {
         js += "{ var e = document.getElementById('\(old)'); if (e) e.classList.remove('sn-selected'); }\n"
     }
     if let new = newID, !new.isEmpty {
-        js += "{ var e = document.getElementById('\(new)'); if (e) e.classList.add('sn-selected'); }\n"
+        js += "{ var e = document.getElementById('\(new)'); if (e) { e.classList.add('sn-selected'); e.scrollIntoView({ block: 'nearest', inline: 'nearest' }); } }\n"
     }
     return js.isEmpty ? "void 0;" : js
 }
