@@ -19,8 +19,9 @@ import UniformTypeIdentifiers
 public struct NotationEditorView: View {
 
     @ObservedObject public var model: NotationEditorModel
-    @State private var showFileImporter = false
-    @State private var showDetailPanel  = true
+    @State private var showNewScoreSheet = false
+    @State private var showFileImporter  = false
+    @State private var showDetailPanel   = true
 
     public init(model: NotationEditorModel) {
         self.model = model
@@ -37,6 +38,7 @@ public struct NotationEditorView: View {
                 canUndo:          model.canUndo,
                 canRedo:          model.canRedo,
                 zoomScale:        $model.zoomScale,
+                onNew:            { showNewScoreSheet = true },
                 onOpen:           { showFileImporter = true },
                 onSave:           { model.save() },
                 onSaveAs:         { model.saveAs() },
@@ -110,6 +112,11 @@ public struct NotationEditorView: View {
             allowsMultipleSelection: false,
             onCompletion:            model.handleImport
         )
+        .sheet(isPresented: $showNewScoreSheet) {
+            NewScoreSheet(isPresented: $showNewScoreSheet) { config in
+                model.createNewScore(config: config)
+            }
+        }
         .animation(.easeInOut(duration: 0.2), value: showDetailPanel)
     }
 }

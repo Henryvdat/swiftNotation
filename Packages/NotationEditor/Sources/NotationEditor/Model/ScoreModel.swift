@@ -84,12 +84,12 @@ public struct MeasureAttributes: Equatable {
     }
 }
 
-public enum KeyMode: String, Equatable, CaseIterable {
+public enum KeyMode: String, Equatable, Hashable, CaseIterable {
     case major, minor, dorian, phrygian, lydian, mixolydian, aeolian, locrian
     case unknown = "none"
 }
 
-public enum Clef: Equatable {
+public enum Clef: Equatable, Hashable {
     case treble, bass, alto, tenor, percussion, tab
     case custom(sign: String, line: Int?)
 }

@@ -12,6 +12,7 @@ public struct EditorToolbar: View {
     public let canUndo:        Bool
     public let canRedo:        Bool
     @Binding public var zoomScale: Double
+    public let onNew:          () -> Void
     public let onOpen:         () -> Void
     public let onSave:         () -> Void
     public let onSaveAs:       () -> Void
@@ -22,13 +23,14 @@ public struct EditorToolbar: View {
     public init(isLoading: Bool, statusMessage: String, hasScore: Bool,
                 showDetailPanel: Binding<Bool>, hasSelection: Bool,
                 canUndo: Bool, canRedo: Bool, zoomScale: Binding<Double>,
+                onNew: @escaping () -> Void,
                 onOpen: @escaping () -> Void, onSave: @escaping () -> Void,
                 onSaveAs: @escaping () -> Void, onClearSelection: @escaping () -> Void,
                 onUndo: @escaping () -> Void, onRedo: @escaping () -> Void) {
         self.isLoading = isLoading; self.statusMessage = statusMessage
         self.hasScore = hasScore; self._showDetailPanel = showDetailPanel
         self.hasSelection = hasSelection; self.canUndo = canUndo; self.canRedo = canRedo
-        self._zoomScale = zoomScale; self.onOpen = onOpen; self.onSave = onSave
+        self._zoomScale = zoomScale; self.onNew = onNew; self.onOpen = onOpen; self.onSave = onSave
         self.onSaveAs = onSaveAs; self.onClearSelection = onClearSelection
         self.onUndo = onUndo; self.onRedo = onRedo
     }
@@ -36,11 +38,18 @@ public struct EditorToolbar: View {
 
     public var body: some View {
         HStack(spacing: 8) {
+            // New
+            Button(action: onNew) {
+                Label("New…", systemImage: "doc.badge.plus")
+            }
+            .buttonStyle(.bordered)
+            .keyboardShortcut("n", modifiers: .command)
+
             // Open
             Button(action: onOpen) {
                 Label("Open…", systemImage: "folder.badge.plus")
             }
-            .buttonStyle(.borderedProminent)
+            .buttonStyle(.bordered)
             .keyboardShortcut("o", modifiers: .command)
 
             // Save
@@ -149,7 +158,7 @@ public struct EditorToolbar: View {
         showDetailPanel: .constant(true),
         hasSelection: true, canUndo: true, canRedo: false,
         zoomScale: .constant(40),
-        onOpen: {}, onSave: {}, onSaveAs: {},
+        onNew: {}, onOpen: {}, onSave: {}, onSaveAs: {},
         onClearSelection: {}, onUndo: {}, onRedo: {}
     )
 }

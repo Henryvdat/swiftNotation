@@ -160,9 +160,13 @@ public enum ScoreEditor {
 
     // MARK: - Convert rest to note
 
-    /// Replace the rest at `svgID` with a note of the given pitch.
-    /// Duration, dots, voice, and staff are preserved from the rest.
-    /// Returns nil if svgID is not found or the element is not a rest.
+    /// Replace the rest at `svgID` with a note of the given pitch, using the
+    /// rest's current type as the note duration.  Any remaining time in the
+    /// rest is filled with one or more properly-typed rests so the measure
+    /// stays rhythmically complete and further notes can be entered.
+    ///
+    /// If the rest has no type set (e.g. a full-measure rest before any
+    /// duration has been chosen), a quarter note is assumed.
     public static func convertRestToNote(
         svgID: String,
         pitch: Pitch = Pitch(step: .c, octave: 4),
@@ -172,15 +176,79 @@ public enum ScoreEditor {
         var result = score
         let element = result.parts[p.partIndex].measures[p.measureIndex].elements[p.elementIndex]
         guard case .rest(let r) = element else { return nil }
+
+        let divisions = findDivisions(partIndex: p.partIndex, measureIndex: p.measureIndex, in: score)
+        let noteType  = r.type ?? .quarter
+        let noteDots  = r.type != nil ? r.dots : 0
+        let noteTicks = min(tickDuration(for: noteType, dots: noteDots, divisions: divisions),
+                            r.duration)
+
+        guard noteTicks > 0 else { return nil }
+
         let note = Note(
             pitch:    pitch,
-            duration: r.duration,
-            type:     r.type,
-            dots:     r.dots,
+            duration: noteTicks,
+            type:     noteType,
+            dots:     noteDots,
             voice:    r.voice,
             staff:    r.staff
         )
+
         result.parts[p.partIndex].measures[p.measureIndex].elements[p.elementIndex] = .note(note)
+
+        // Fill any remaining time with decomposed rests so the measure stays complete.
+        let remaining = r.duration - noteTicks
+        if remaining > 0 {
+            let tail = fillRests(duration: remaining, voice: r.voice, staff: r.staff, divisions: divisions)
+            result.parts[p.partIndex].measures[p.measureIndex].elements
+                .insert(contentsOf: tail, at: p.elementIndex + 1)
+        }
+
+        return result
+    }
+
+    // MARK: - Duration helpers
+
+    /// Number of ticks for a note type with the given dot count, given the
+    /// measure's divisions (ticks per quarter note).
+    public static func tickDuration(for type: NoteType, dots: Int, divisions: Int) -> Int {
+        var ticks    = type.relativeDuration * Double(divisions)
+        var dotValue = ticks / 2.0
+        for _ in 0..<max(0, dots) { ticks += dotValue; dotValue /= 2.0 }
+        return Int(ticks.rounded())
+    }
+
+    /// Walk backward from `measureIndex` to find the most recent `divisions` setting.
+    private static func findDivisions(partIndex: Int, measureIndex: Int, in score: Score) -> Int {
+        guard partIndex < score.parts.count else { return 4 }
+        let measures = score.parts[partIndex].measures
+        for mi in stride(from: min(measureIndex, measures.count - 1), through: 0, by: -1) {
+            if let div = measures[mi].attributes?.divisions, div > 0 { return div }
+        }
+        return 4
+    }
+
+    /// Decompose `duration` ticks into the fewest properly-typed rests,
+    /// using a greedy largest-first algorithm (dotted values tried before plain).
+    private static func fillRests(duration: Int, voice: Int, staff: Int, divisions: Int) -> [MusicElement] {
+        let types: [NoteType] = [.whole, .half, .quarter, .eighth, .sixteenth, .thirtySecond, .sixtyFourth]
+        var remaining = duration
+        var result: [MusicElement] = []
+        while remaining > 0 {
+            var placed = false
+            outerLoop: for type_ in types {
+                for dots in [1, 0] {
+                    let d = tickDuration(for: type_, dots: dots, divisions: divisions)
+                    if d > 0 && d <= remaining {
+                        result.append(.rest(Rest(duration: d, type: type_, dots: dots, voice: voice, staff: staff)))
+                        remaining -= d
+                        placed = true
+                        break outerLoop
+                    }
+                }
+            }
+            if !placed { break }
+        }
         return result
     }
 

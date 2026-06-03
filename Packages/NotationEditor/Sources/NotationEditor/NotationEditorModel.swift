@@ -58,6 +58,47 @@ public final class NotationEditorModel: ObservableObject {
         self.importer = importer ?? MusicXMLImporter()
     }
 
+    // MARK: - New score
+
+    public func createNewScore(config: NewScoreConfig) {
+        let divisions = 4   // ticks per quarter note
+        var attrs = MeasureAttributes()
+        attrs.divisions    = divisions
+        attrs.keyFifths    = config.keyFifths
+        attrs.keyMode      = config.keyMode
+        attrs.timeBeats    = config.timeBeats
+        attrs.timeBeatType = config.timeBeatType
+        attrs.clef         = config.clef
+
+        // Full-measure rest duration: beats × (4 ticks/quarter) × (4 quarters/whole) ÷ beatType
+        let measureDuration = (config.timeBeats * 16) / config.timeBeatType
+
+        var measures: [Measure] = []
+        for i in 1...max(1, config.measureCount) {
+            var m = Measure(number: i)
+            if i == 1 { m.attributes = attrs }
+            m.elements = [.rest(Rest(duration: measureDuration, voice: 1, staff: 1, isFullMeasure: true))]
+            measures.append(m)
+        }
+
+        var part = Part(xmlID: "P1")
+        part.name = config.partName.isEmpty ? nil : config.partName
+        part.measures = measures
+
+        var newScore = Score()
+        newScore.title    = config.title.isEmpty    ? nil : config.title
+        newScore.composer = config.composer.isEmpty ? nil : config.composer
+        newScore.parts    = [part]
+
+        selection.clear()
+        undoStack.removeAll(); redoStack.removeAll()
+        updateUndoRedoState()
+        currentFileURL = nil
+        score          = newScore
+        statusMessage  = newScore.title ?? "New Score"
+        Task { await rerender() }
+    }
+
     // MARK: - File loading
 
     public func handleImport(_ result: Result<[URL], Error>) {
