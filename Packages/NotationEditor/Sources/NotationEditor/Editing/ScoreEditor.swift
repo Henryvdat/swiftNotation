@@ -167,6 +167,8 @@ public enum ScoreEditor {
     ///
     /// If the rest has no type set (e.g. a full-measure rest before any
     /// duration has been chosen), a quarter note is assumed.
+    /// If the rest's type is larger than its available duration, the largest
+    /// fitting type is used automatically.
     public static func convertRestToNote(
         svgID: String,
         pitch: Pitch = Pitch(step: .c, octave: 4),
@@ -178,11 +180,14 @@ public enum ScoreEditor {
         guard case .rest(let r) = element else { return nil }
 
         let divisions = findDivisions(partIndex: p.partIndex, measureIndex: p.measureIndex, in: score)
-        let noteType  = r.type ?? .quarter
-        let noteDots  = r.type != nil ? r.dots : 0
-        let noteTicks = min(tickDuration(for: noteType, dots: noteDots, divisions: divisions),
-                            r.duration)
+        let requested = r.type ?? .quarter
+        let reqDots   = r.type != nil ? r.dots : 0
 
+        // Use the requested type if it fits; otherwise fall back to the largest that does.
+        let (noteType, noteDots, noteTicks) = bestFit(
+            requestedType: requested, requestedDots: reqDots,
+            availableTicks: r.duration, divisions: divisions
+        )
         guard noteTicks > 0 else { return nil }
 
         let note = Note(
@@ -207,6 +212,25 @@ public enum ScoreEditor {
         return result
     }
 
+    /// Return the best-fitting (type, dots, ticks) for the requested duration within `availableTicks`.
+    /// Falls back to the largest type that fits if the request exceeds the available space.
+    private static func bestFit(
+        requestedType: NoteType, requestedDots: Int, availableTicks: Int, divisions: Int
+    ) -> (type: NoteType, dots: Int, ticks: Int) {
+        let reqTicks = tickDuration(for: requestedType, dots: requestedDots, divisions: divisions)
+        if reqTicks > 0 && reqTicks <= availableTicks {
+            return (requestedType, requestedDots, reqTicks)
+        }
+        let types: [NoteType] = [.whole, .half, .quarter, .eighth, .sixteenth, .thirtySecond, .sixtyFourth]
+        for type_ in types {
+            for dots in [1, 0] {
+                let d = tickDuration(for: type_, dots: dots, divisions: divisions)
+                if d > 0 && d <= availableTicks { return (type_, dots, d) }
+            }
+        }
+        return (requestedType, requestedDots, 0)
+    }
+
     // MARK: - Duration helpers
 
     /// Number of ticks for a note type with the given dot count, given the
@@ -228,12 +252,23 @@ public enum ScoreEditor {
         return 4
     }
 
-    /// Decompose `duration` ticks into the fewest properly-typed rests,
-    /// using a greedy largest-first algorithm (dotted values tried before plain).
+    /// Decompose `duration` ticks into rests that are easy to navigate and fill.
+    /// Uses beat-unit (quarter = divisions ticks) chunks first so each slot is
+    /// a standard beat size, then greedy largest-first for any sub-beat remainder.
     private static func fillRests(duration: Int, voice: Int, staff: Int, divisions: Int) -> [MusicElement] {
-        let types: [NoteType] = [.whole, .half, .quarter, .eighth, .sixteenth, .thirtySecond, .sixtyFourth]
         var remaining = duration
         var result: [MusicElement] = []
+
+        // Fill whole-beat (quarter note) chunks first — gives the user uniformly-sized
+        // rest slots to enter notes into, avoiding awkward sub-beat fragments.
+        let beatTicks = max(1, divisions)
+        while remaining >= beatTicks {
+            result.append(.rest(Rest(duration: beatTicks, type: .quarter, dots: 0, voice: voice, staff: staff)))
+            remaining -= beatTicks
+        }
+
+        // Sub-beat remainder: greedy largest-first.
+        let types: [NoteType] = [.half, .quarter, .eighth, .sixteenth, .thirtySecond, .sixtyFourth]
         while remaining > 0 {
             var placed = false
             outerLoop: for type_ in types {

@@ -45,8 +45,10 @@ public struct MusicXMLExporter {
 
         for part in score.parts {
             lines.append(indent(1, #"<part id="\#(escape(part.xmlID))">"#))
+            var runningDivisions = 4
             for measure in part.measures {
-                lines += exportMeasure(measure, indent: 2)
+                if let d = measure.attributes?.divisions, d > 0 { runningDivisions = d }
+                lines += exportMeasure(measure, indent: 2, divisions: runningDivisions)
             }
             lines.append(indent(1, "</part>"))
         }
@@ -57,7 +59,7 @@ public struct MusicXMLExporter {
 
     // MARK: - Measure
 
-    private func exportMeasure(_ measure: Measure, indent level: Int) -> [String] {
+    private func exportMeasure(_ measure: Measure, indent level: Int, divisions: Int) -> [String] {
         var lines: [String] = []
         lines.append(indent(level, #"<measure number="\#(measure.number)">"#))
 
@@ -65,7 +67,8 @@ public struct MusicXMLExporter {
             lines += exportAttributes(attrs, indent: level + 1)
         }
 
-        for element in measure.elements {
+        let elements = withAutoBeams(measure.elements, divisions: divisions)
+        for element in elements {
             switch element {
             case .note(let note):
                 lines += exportNote(note, indent: level + 1)
@@ -80,6 +83,101 @@ public struct MusicXMLExporter {
 
         lines.append(indent(level, "</measure>"))
         return lines
+    }
+
+    // MARK: - Auto-beaming
+
+    /// Return elements with beam attributes computed for consecutive beamable notes
+    /// within the same beat.  Only sets beams on notes whose `beams` array is empty
+    /// (i.e. notes entered via the editor rather than imported with explicit beams).
+    private func withAutoBeams(_ elements: [MusicElement], divisions: Int) -> [MusicElement] {
+        guard divisions > 0 else { return elements }
+        let beatTicks = divisions
+
+        struct NoteItem {
+            let elemIdx: Int
+            let tickStart: Int
+            let note: Note
+        }
+
+        // Collect beamable notes with their tick positions, skipping chord tones (they share a tick).
+        var tick = 0
+        var allItems: [NoteItem] = []
+        for (i, elem) in elements.enumerated() {
+            switch elem {
+            case .note(let n) where !n.isChordTone:
+                if let type_ = n.type, type_.canBeam {
+                    allItems.append(NoteItem(elemIdx: i, tickStart: tick, note: n))
+                }
+                tick += n.duration
+            case .note(let n):
+                _ = n  // chord tone — no tick advance
+            case .rest(let r):
+                tick += r.duration
+            default:
+                break
+            }
+        }
+
+        // Group items that are consecutive (no gap) and in the same beat.
+        var groups: [[NoteItem]] = []
+        var cur: [NoteItem] = []
+        for item in allItems {
+            let beat = item.tickStart / beatTicks
+            if let prev = cur.last {
+                let prevEnd  = prev.tickStart + prev.note.duration
+                let prevBeat = prev.tickStart / beatTicks
+                if prevEnd == item.tickStart && prevBeat == beat {
+                    cur.append(item)
+                    continue
+                }
+            }
+            if cur.count >= 2 { groups.append(cur) }
+            cur = [item]
+        }
+        if cur.count >= 2 { groups.append(cur) }
+
+        // Build index: elemIdx → (position in group, group)
+        var beamMap: [Int: (pos: Int, group: [NoteItem])] = [:]
+        for group in groups {
+            for (pos, item) in group.enumerated() {
+                beamMap[item.elemIdx] = (pos, group)
+            }
+        }
+
+        // Apply beams.
+        var result = elements
+        for i in 0..<result.count {
+            guard case .note(var n) = result[i], !n.isChordTone else { continue }
+            guard n.beams.isEmpty else { continue }  // preserve imported beams
+            guard let (pos, group) = beamMap[i] else { continue }
+
+            let isFirst = pos == 0
+            let isLast  = pos == group.count - 1
+
+            var newBeams: [Beam] = []
+
+            // Primary beam (eighth-level).
+            newBeams.append(Beam(number: 1, value: isFirst ? .begin : isLast ? .end : .continuing))
+
+            // Secondary beam (sixteenth-level) for 16th and smaller notes.
+            if let type_ = n.type, type_.relativeDuration <= 0.25 {
+                let prevIs16 = pos > 0 && (group[pos - 1].note.type?.relativeDuration ?? 1) <= 0.25
+                let nextIs16 = pos < group.count - 1 && (group[pos + 1].note.type?.relativeDuration ?? 1) <= 0.25
+
+                let b2: BeamValue
+                if isFirst      { b2 = nextIs16 ? .begin       : .forwardHook  }
+                else if isLast  { b2 = prevIs16 ? .end         : .backwardHook }
+                else if prevIs16 && nextIs16 { b2 = .continuing }
+                else if prevIs16 { b2 = .end }
+                else             { b2 = .begin }
+                newBeams.append(Beam(number: 2, value: b2))
+            }
+
+            n.beams = newBeams
+            result[i] = .note(n)
+        }
+        return result
     }
 
     // MARK: - Attributes
