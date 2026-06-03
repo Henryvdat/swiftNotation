@@ -40,7 +40,7 @@ public final class NotationEditorModel: ObservableObject {
     // MARK: - Private
 
     private let renderer: any ScoreRenderer
-    private let importer = MusicXMLImporter()
+    private let importer: any ScoreImporter
     private let mapper   = SVGIDMapper()
     private var idMap:    SVGIDMap?
     private var undoStack: [Score] = []
@@ -48,8 +48,14 @@ public final class NotationEditorModel: ObservableObject {
 
     // MARK: - Init
 
-    public init(renderer: any ScoreRenderer) {
+    /// - Parameters:
+    ///   - renderer: Verovio (or any other) renderer conforming to `ScoreRenderer`.
+    ///   - importer: Parser to use when loading MusicXML files.
+    ///               Defaults to `MusicXMLImporter` (Foundation-based).
+    ///               Pass an `MxMusicXMLImporter` from the host app for full mx-backed parsing.
+    public init(renderer: any ScoreRenderer, importer: (any ScoreImporter)? = nil) {
         self.renderer = renderer
+        self.importer = importer ?? MusicXMLImporter()
     }
 
     // MARK: - File loading
@@ -78,9 +84,10 @@ public final class NotationEditorModel: ObservableObject {
             // Parse and re-export on a background thread so the main thread stays
             // responsive.  Both MusicXMLImporter and MusicXMLExporter are pure
             // value-type operations with no UI dependencies.
+            let imp = importer   // capture value/reference for detached task
             let (parsedScore, xmlWithIDs): (Score, String) =
                 try await Task.detached(priority: .userInitiated) {
-                    let s = try MusicXMLImporter().importScore(from: xml)
+                    let s = try imp.importScore(from: xml)
                     let x = MusicXMLExporter().exportScore(s)
                     return (s, x)
                 }.value
@@ -296,7 +303,8 @@ public final class NotationEditorModel: ObservableObject {
         }
         guard !ids.isEmpty else { return }
         if let currentID = selection.svgID, let idx = ids.firstIndex(of: currentID) {
-            let nextIdx = forward ? min(idx + 1, ids.count - 1) : max(idx - 1, 0)
+            // Wrap around so → at the last element goes to the first, and vice-versa.
+            let nextIdx = forward ? (idx + 1) % ids.count : (idx - 1 + ids.count) % ids.count
             selectElement(svgID: ids[nextIdx])
         } else {
             selectElement(svgID: forward ? ids[0] : ids[ids.count - 1])

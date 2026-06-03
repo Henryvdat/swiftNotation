@@ -48,7 +48,7 @@ private enum NoteParseResult {
 // MARK: - Importer
 
 /// Converts a raw MusicXML string to a `Score` value.
-public struct MusicXMLImporter {
+public struct MusicXMLImporter: ScoreImporter {
 
     // MARK: - Public entry point
 

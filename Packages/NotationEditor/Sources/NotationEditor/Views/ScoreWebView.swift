@@ -151,11 +151,14 @@ public struct ScoreWebView: NSViewRepresentable {
         <body>
         \(svgContent)
         <script>
+        // Walk up from the click target looking for a note/rest id (our UUID scheme:
+        // "n-<uuid>" or "r-<uuid>").  Filtering prevents accidentally firing on
+        // Verovio's own system/measure group ids that appear above the note element.
         document.addEventListener('click', function(e) {
           var el = e.target;
           while (el && el.tagName !== 'BODY') {
             var id = el.getAttribute('id');
-            if (id) {
+            if (id && (id.startsWith('n-') || id.startsWith('r-'))) {
               fetch('sn://select/' + encodeURIComponent(id)).catch(function(){});
               return;
             }

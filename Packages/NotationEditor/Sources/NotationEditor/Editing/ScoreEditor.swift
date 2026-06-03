@@ -215,7 +215,18 @@ public enum ScoreEditor {
         guard case .note(let n) = element else { return nil }
         var updated = n
         updated.pitch = Pitch(step: n.pitch.step, octave: n.pitch.octave, alter: alter)
-        updated.accidental = nil
+        // Set the explicit accidental element so Verovio always renders the symbol.
+        // For natural: only emit the natural sign if the note was previously altered so
+        // the sign cancels a prior sharp/flat in the same measure.
+        switch alter {
+        case 1.0:  updated.accidental = .sharp
+        case -1.0: updated.accidental = .flat
+        case nil:
+            let wasAltered = n.pitch.alter != nil && n.pitch.alter != 0
+            updated.accidental = wasAltered ? .natural : nil
+        default:
+            updated.accidental = nil
+        }
         result.parts[p.partIndex].measures[p.measureIndex].elements[p.elementIndex] = .note(updated)
         return result
     }

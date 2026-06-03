@@ -5,3 +5,4 @@
 // a single DispatchQueue (see VerovioRenderer.swift).
 
 #import "VerovioWrapper.h"
+#import "MxWrapper.h"

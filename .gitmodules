@@ -1,3 +1,6 @@
 [submodule "Packages/verovio"]
 	path = Packages/verovio
 	url = https://github.com/rism-digital/verovio.git
+[submodule "Packages/mx"]
+	path = Packages/mx
+	url = https://github.com/webern/mx.git
